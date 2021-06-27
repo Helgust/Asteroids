@@ -1,0 +1,14 @@
+﻿  Game.cpp
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(70,24): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(70,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(71,19): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(71,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(103,52): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(104,53): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(149,39): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(149,30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(157,46): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(157,38): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(157,30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(157,22): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  GameTemplate.vcxproj -> C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\x64\Debug\GameTemplate.exe
