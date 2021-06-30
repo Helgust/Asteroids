@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <vector>
+#include <utility>
 using namespace std;
 //
 //  You are free to modify this file
@@ -31,17 +32,25 @@ struct GameObject
     float angle;
 };
 
-vector<GameObject> vecGameObjects;
+vector<GameObject> vecAsteroids;
+vector<GameObject> vecBullets;
 GameObject player; 
 
 float mx[3] = { 0.0f, -2.5f, +2.5f };
 float my[3] = { -5.5f, +2.5f, +2.5f };
 
 float sx[3], sy[3];
+
+vector<pair<float, float>> vecModelShip;
+vector<pair<float, float>> vecModelAsteroid;
+vector<pair<float, float>> vecModelBullet;
+
 void WrapCoordinates(float ix, float iy, float& ox, float& oy);
 void drawPoint(int x, int y, uint32_t color);
 void drawPoint2(int x, int y, uint32_t color);
 void drawLine(int x1, int y1, int x2, int y2, uint32_t color);
+void drawModel(const vector<pair<float, float>>& vecModelCoordinates,
+    float x, float y, float r = 0.0f, float s = 1.0f, uint32_t color = WHITE);
 
 
 
@@ -76,12 +85,35 @@ void drawPoint2(int x, int y, uint32_t color)
 // initialize game data in this function
 void initialize()
 {
-    vecGameObjects.push_back({20.0f, 20.0f, 40.0f, -20.0f,40,0.0f});
+    vecAsteroids.push_back({20.0f, 20.0f, 40.0f, -20.0f,10,0.0f});
     player.x = SCREEN_HEIGHT / 2.0f;
     player.y = SCREEN_WIDTH / 2.0f;
     player.dx = 0.0f;
     player.dy = 0.0f;
     player.angle = 0.0f;
+
+    vecModelShip =
+    {
+        { 0.0f, -5.0f},
+        {-2.5f, +2.5f},
+        {+2.5f, +2.5f}
+    };
+
+    vecModelBullet =
+    {
+        { -1.7f, 1.7f},
+        { 1.7f, 1.7f},
+        { 1.7f, -1.7f},
+        { -1.7f, -1.7f}
+    };
+
+    int verts = 20;
+    for (int i = 0; i < verts; i++)
+    {
+        float radius = 5.0f;
+        float a = ((float)i / (float)verts) * 6.28318f;
+        vecModelAsteroid.push_back(make_pair(radius * sinf(a), radius * cosf(a)));
+    }
 }
 
 // this function is called to update game data,
@@ -104,16 +136,44 @@ void act(float dt)
         player.dy += -cos(player.angle) * 20.0f * dt;
     }
 
+    if (is_key_pressed(VK_SPACE)) {
+        vecBullets.push_back({ player.x,player.y,50.0f * sinf(player.angle),-50.0f * cosf(player.angle),0,0});
+    }
+
     player.x += player.dx * dt;
     player.y += player.dy * dt;
 
     
 
-    for (auto& a : vecGameObjects){
+    for (auto& a : vecAsteroids){
         a.x += a.dx * dt;
         a.y += a.dy * dt;
         WrapCoordinates(a.x, a.y, a.x, a.y);
     }
+
+    for (auto& b : vecBullets) {
+        b.x += b.dx * dt;
+        b.y += b.dy * dt;
+        WrapCoordinates(b.x, b.y, b.x, b.y);
+        b.angle -= 1.0f * dt;
+    }
+    if (vecBullets.size() > 0)
+    {
+        for (auto itr = vecBullets.begin(); itr != vecBullets.end();)
+        {
+            if (itr->x < 1 || itr->y < 1 || itr->x > SCREEN_WIDTH || itr->y > SCREEN_HEIGHT) {
+                if (itr != vecBullets.end()) {
+                    itr = vecBullets.erase(itr);
+                }
+            }
+            else
+            {
+                ++itr;
+            }
+        } 
+    }
+
+
 
     //Rotate
     for (int i = 0; i < 3; i++)
@@ -130,6 +190,8 @@ void act(float dt)
     }
 
     WrapCoordinates(player.x, player.y, player.x, player.y);
+
+
 }
 
 // fill buffer in this function
@@ -138,25 +200,57 @@ void draw()
 {
   // clear backbuffer
   memset(buffer, 0, SCREEN_HEIGHT * SCREEN_WIDTH * sizeof(uint32_t));
-
-
-  for (auto& a : vecGameObjects)
-  {
-      for (int x = 0; x < a.size; x++)
-      {
-          for (int y = 0; y < a.size; y++)
-          {
-              drawPoint2(a.x + x, a.y + y, WHITE);
-          }
-      }
+  for (auto& a : vecAsteroids) { 
+      drawModel(vecModelAsteroid, a.x, a.y, a.angle, a.size);
+  }
+  drawModel(vecModelShip, player.x, player.y, player.angle,5.0f);
+  for (auto& a : vecBullets) {
+      drawPoint2(a.x, a.y, WHITE);
   }
 
-  for (int i = 0; i < 4; i++)
-  {
-      int j = (i + 1);
-      drawLine(sx[i%3],sy[i%3],sx[j%3],sy[j%3],WHITE);
-  }
+
 }
+
+void drawModel(const vector<pair<float, float>>& vecModelCoordinates, float x, float y, 
+    float r, float s, uint32_t color)
+{
+    // pair.first = x coordinate
+    // pair.second = y coordinate
+
+    // Create translated model vector of coordinate pairs
+    vector<pair<float, float>> vecTransformedCoordinates;
+    int verts = vecModelCoordinates.size();
+    vecTransformedCoordinates.resize(verts);
+
+    // Rotate
+    for (int i = 0; i < verts; i++)
+    {
+        vecTransformedCoordinates[i].first = vecModelCoordinates[i].first * cosf(r) - vecModelCoordinates[i].second * sinf(r);
+        vecTransformedCoordinates[i].second = vecModelCoordinates[i].first * sinf(r) + vecModelCoordinates[i].second * cosf(r);
+    }
+
+    // Scale
+    for (int i = 0; i < verts; i++)
+    {
+        vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first * s;
+        vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second * s;
+    }
+
+    // Translate
+    for (int i = 0; i < verts; i++)
+    {
+        vecTransformedCoordinates[i].first = vecTransformedCoordinates[i].first + x;
+        vecTransformedCoordinates[i].second = vecTransformedCoordinates[i].second + y;
+    }
+
+    // Draw Closed Polygon
+    for (int i = 0; i < verts + 1; i++)
+    {
+        int j = (i + 1);
+       drawLine(vecTransformedCoordinates[i % verts].first, vecTransformedCoordinates[i % verts].second,
+            vecTransformedCoordinates[j % verts].first, vecTransformedCoordinates[j % verts].second, WHITE);
+    }
+};
 
 void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
 {
