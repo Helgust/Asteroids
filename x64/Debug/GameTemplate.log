@@ -1,32 +1,35 @@
 ﻿  Game.cpp
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(79,24): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(79,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(80,19): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(80,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(135,52): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(136,53): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(204,55): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(208,24): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(208,19): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(222,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(251,93): warning C4244: 'argument': conversion from '_Ty2' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(132,53): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(133,54): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(154,34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(187,45): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(187,38): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(268,52): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(271,55): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(283,53): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(406,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(435,93): warning C4244: 'argument': conversion from '_Ty2' to 'int', possible loss of data
           with
           [
               _Ty2=float
           ]
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(251,49): warning C4244: 'argument': conversion from '_Ty1' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(435,49): warning C4244: 'argument': conversion from '_Ty1' to 'int', possible loss of data
           with
           [
               _Ty1=float
           ]
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(250,97): warning C4244: 'argument': conversion from '_Ty2' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(434,98): warning C4244: 'argument': conversion from '_Ty2' to 'int', possible loss of data
           with
           [
               _Ty2=float
           ]
-C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(250,53): warning C4244: 'argument': conversion from '_Ty1' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(434,54): warning C4244: 'argument': conversion from '_Ty1' to 'int', possible loss of data
           with
           [
               _Ty1=float
           ]
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(461,24): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(461,21): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(462,19): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\Game.cpp(462,15): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   GameTemplate.vcxproj -> C:\Users\egor.tyutyunikov\Desktop\MIPT\Assesment\Asteroids\x64\Debug\GameTemplate.exe
