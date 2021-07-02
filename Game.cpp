@@ -3,6 +3,7 @@
 #include <memory.h>
 #include <vector>
 #include <utility>
+#include <map>
 using namespace std;
 //
 //  You are free to modify this file
@@ -38,6 +39,7 @@ struct GameObject
 vector<GameObject> vecAsteroids;
 vector<GameObject> vecBullets;
 vector<GameObject> vecHearts;
+vector<GameObject> vecScore;
 GameObject player; 
 
 
@@ -51,11 +53,22 @@ float old_dt = 0;
 float collide_dt = 0;
 int score = 0;
 bool is_collide_flag = false;
+map<int, vector<pair<float, float>>> digit_map;
 
 vector<pair<float, float>> vecModelShip;
 vector<pair<float, float>> vecModelHeart;
 vector<pair<float, float>> vecModelAsteroid;
 vector<pair<float, float>> vecModelBullet;
+vector<pair<float, float>> vecModelDigit0;
+vector<pair<float, float>> vecModelDigit1;
+vector<pair<float, float>> vecModelDigit2;
+vector<pair<float, float>> vecModelDigit3;
+vector<pair<float, float>> vecModelDigit4;
+vector<pair<float, float>> vecModelDigit5;
+vector<pair<float, float>> vecModelDigit6;
+vector<pair<float, float>> vecModelDigit7;
+vector<pair<float, float>> vecModelDigit8;
+vector<pair<float, float>> vecModelDigit9;
 
 void WrapCoordinates(float ix, float iy, float& ox, float& oy);
 void drawPoint(int x, int y, uint32_t color);
@@ -82,12 +95,127 @@ void initialize()
         {-1.0f, -2.5f},
         {0.0f, -2.0f}
     };
+    vecModelDigit0 =
+    {
+        {-1.0f,0.0f},
+        {-1.0f,-2.0f},
+        {0.0f,-2.0f},
+        {-1.0f,0.0f},
+        {0.0f,0.0f},
+        {0.0f,-2.0f}
+    };
+    vecModelDigit1 = 
+    {
+        {0.0f,0.0f},
+        {0.0f,-2.0f},
+        {-1.0f,-1.0f},
+        {0.0f,-2.0f}
+
+    };
+    vecModelDigit2 =
+    {
+        {0.0f,0.0f},
+        {-1.0f,0.0f},
+        {0.0f,-1.5f},
+        {0.0f,-2.0f},
+        {-0.75f,-2.0f},
+        {-1.0f,-1.65f},
+        {-0.75f,-2.0f},
+        {0.0f,-2.0f},
+        {0.0f,-1.5f},
+        {-1.0f,0.0f}
+    };
+    vecModelDigit3 =
+    {
+        {-1.0f,-2.0f},
+        {0.0f,-2.0f},
+        {-1.0f,-1.0f},
+        {0.0f,-1.0f},
+        {-1.0f,0.0f},
+        {0.0f,-1.0f},
+        {-1.0f,-1.0f},
+        {0.0f,-2.0f}
+    };
+    vecModelDigit4 =
+    {
+        {-1.0f,-2.0f},
+        {-1.0f,-1.0f},
+        {0.0f,-1.0f},
+        {0.0f,0.0f},
+        {0.0,-2.0f},
+        {0.0f,-1.0f},
+        {-1.0f,-1.0f}
+    };
+    vecModelDigit5 =
+    {
+        {-1.0f,-.0f},
+        {0.0f,-0.5f},
+        {-1.0f,-1.0f},
+        {-1.0f,-1.5f},
+        {-1.0,-2.0f},
+        {0.0f,-2.0f},
+        {-1.0,-2.0f},
+        {-1.0f,-1.5f},
+        {-1.0f,-1.0f},
+        {0.0f,-0.5f}
+    };
+    vecModelDigit6 =
+    {
+        {-1.0f,-.0f},
+        {0.0f,0.0f},
+        {0.0f,-1.0f},
+        {-1.0f,-1.0f},
+        {0.0f,-2.0f},
+        {-1.0f,-1.0f}
+    };
+    vecModelDigit7 =
+    {
+        {-1.0f,-2.0f},
+        {0.0,-2.0f},
+        {-1.0f,0.0f},
+        {0.0,-2.0f}
+    };
+    vecModelDigit8 =
+    {
+        {0.0f,0.0f},
+        {0.0,-2.0f},
+        {-1.0,-2.0f},
+        {-1.0f,0.0f},
+        {0.0,0.0f},
+        {0.0,-1.0f},
+        {-1.0,-1.0f},
+        {-1.0,0.0f}
+    };
+    vecModelDigit9 =
+    {
+        {-1.0f,0.0f},
+        {0.0,-1.0f},
+        {-1.0,-1.0f},
+        {-1.0f,-2.0f},
+        {0.0,-2.0f},
+        {0.0,-1.0f},
+
+    };
     vecModelShip =
     {
         { 0.0f, -5.0f},
         {-2.5f, +2.5f},
         {+2.5f, +2.5f}
     };
+
+    digit_map.insert(make_pair(0, vecModelDigit0));
+    digit_map.insert(make_pair(1, vecModelDigit1));
+    digit_map.insert(make_pair(2, vecModelDigit2));
+    digit_map.insert(make_pair(3, vecModelDigit3));
+    digit_map.insert(make_pair(4, vecModelDigit4));
+    digit_map.insert(make_pair(5, vecModelDigit5));
+    digit_map.insert(make_pair(6, vecModelDigit6));
+    digit_map.insert(make_pair(7, vecModelDigit7));
+    digit_map.insert(make_pair(8, vecModelDigit8));
+    digit_map.insert(make_pair(9, vecModelDigit9));
+
+
+
 
     int bullet_verts = 5;
     for (int i = 0; i < bullet_verts; i++)
@@ -105,6 +233,8 @@ void initialize()
         float a = ((float)i / (float)verts) * 6.28318f;
         vecModelAsteroid.push_back(make_pair(radius * sinf(a), radius * cosf(a)));
     }
+
+    vecScore.push_back({ 150.0f, 30.0f, 0.0f, 0.0f, 10, 0.0f });
 }
 
 // this function is called to update game data,
@@ -136,7 +266,7 @@ void act(float dt)
     if (is_key_pressed(VK_SPACE)) {
         if (old_dt > 0.25f && !is_collide_flag)
         {
-            vecBullets.push_back({ player.x,player.y,200.0f * sinf(player.angle),-200.0f * cosf(player.angle),10,0 });
+            vecBullets.push_back({ player.x,player.y,400.0f * sinf(player.angle),-400.0f * cosf(player.angle),5,0 });
             old_dt = 0;
         }
     }
@@ -187,7 +317,7 @@ void act(float dt)
             if (IsCollide(a.x, a.y, a.size,b.size, b.x, b.y))
             {
                 b.x = -10000;
-                if (a.size > 8)
+                if (a.size > 16)
                 {
                     float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
                     float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
@@ -221,7 +351,7 @@ void act(float dt)
     {
         for (auto itr = vecAsteroids.begin(); itr != vecAsteroids.end();)
         {
-            if (itr->x < 1 || itr->y < 1 || itr->x > SCREEN_WIDTH || itr->y > SCREEN_HEIGHT) {
+            if (itr->x < -100 || itr->y < -100 || itr->x > SCREEN_WIDTH + 100 || itr->y > SCREEN_HEIGHT + 100) {
                 if (itr != vecAsteroids.end()) {
                     itr = vecAsteroids.erase(itr);
                 }
@@ -283,6 +413,11 @@ void draw()
       drawModel(vecModelBullet, a.x, a.y, a.angle, a.size);
   }
 
+  for (auto& a : vecScore) {
+      drawModel(vecModelDigit9, a.x, a.y, a.angle, a.size);
+  }
+
+
 
 }
 
@@ -311,6 +446,7 @@ void finalize()
 {
     vecAsteroids.clear();
     vecBullets.clear();
+    vecHearts.clear();
 }
 
 
