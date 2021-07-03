@@ -4,6 +4,7 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <ctime>
 using namespace std;
 //
 //  You are free to modify this file
@@ -24,9 +25,9 @@ const uint32_t BLUE = 0x000000FF;
 const uint32_t WHITE = 0xFFFFFFFF;
 const uint32_t YELLOW = 0x00FFFF00;
 const uint32_t ORANGE = 0x00FFA500;
-const float collide_time = 2.0f;
+const float COLLIDE_TIME = 2.0f;
 
-struct GameObject
+struct Game_object
 {
     float x;
     float y;
@@ -36,14 +37,15 @@ struct GameObject
     float angle;
 };
 
-vector<GameObject> vecAsteroids;
-vector<GameObject> vecBullets;
-vector<GameObject> vecHearts;
-vector<GameObject> vecScore;
-GameObject player; 
+vector<Game_object> vector_asteroids;
+vector<Game_object> vector_bullets;
+vector<Game_object> vector_hearts;
+vector<int> vector_score;
+Game_object player; 
 
 
 bool is_dead = false;
+bool is_acclerate = false;
 int h_points = 0;
 float mx[3] = { 0.0f, -2.5f, +2.5f };
 float my[3] = { -5.5f, +2.5f, +2.5f };
@@ -52,11 +54,13 @@ float sx[3], sy[3];
 float old_dt = 0;
 float collide_dt = 0;
 int score = 0;
+int old_score = score;
 bool is_collide_flag = false;
 map<int, vector<pair<float, float>>> digit_map;
 
 vector<pair<float, float>> vecModelShip;
 vector<pair<float, float>> vecModelHeart;
+vector<pair<float, float>> vecModelFlame;
 vector<pair<float, float>> vecModelAsteroid;
 vector<pair<float, float>> vecModelBullet;
 vector<pair<float, float>> vecModelDigit0;
@@ -70,14 +74,15 @@ vector<pair<float, float>> vecModelDigit7;
 vector<pair<float, float>> vecModelDigit8;
 vector<pair<float, float>> vecModelDigit9;
 
-void WrapCoordinates(float ix, float iy, float& ox, float& oy);
-void drawPoint(int x, int y, uint32_t color);
-void drawPoint2(int x, int y, uint32_t color);
-void drawLine(int x1, int y1, int x2, int y2, uint32_t color);
-void drawModel(const vector<pair<float, float>>& vecModelCoordinates,
+void wrap_coordinates(float ix, float iy, float& ox, float& oy);
+void draw_point(int x, int y, uint32_t color);
+void draw_point2(int x, int y, uint32_t color);
+void draw_line(int x1, int y1, int x2, int y2, uint32_t color);
+void draw_model(const vector<pair<float, float>>& vecModelCoordinates,
     float x, float y, float r = 0.0f, float s = 1.0f, uint32_t color = WHITE);
-bool IsCollide(float ax, float ay, float a_radius, float b_radius ,float bx, float by);
+bool is_collide(float ax, float ay, float a_radius, float b_radius ,float bx, float by);
 void reset();
+void asteroids_random_spawn(vector<Game_object>& );
 
 // initialize game data in this function
 void initialize()
@@ -214,9 +219,6 @@ void initialize()
     digit_map.insert(make_pair(8, vecModelDigit8));
     digit_map.insert(make_pair(9, vecModelDigit9));
 
-
-
-
     int bullet_verts = 5;
     for (int i = 0; i < bullet_verts; i++)
     {
@@ -234,17 +236,40 @@ void initialize()
         vecModelAsteroid.push_back(make_pair(radius * sinf(a), radius * cosf(a)));
     }
 
-    vecScore.push_back({ 150.0f, 30.0f, 0.0f, 0.0f, 10, 0.0f });
+    int flame_count = 10;
+    pair<float, float> old_point = { -2.25f,2.5f };
+    vecModelFlame.push_back(old_point);
+    for (int i = 1; i < flame_count*2+1; i++)
+    {
+        float step = 4.5f / (flame_count * 2);
+        old_point.first += step;
+        if (i % 2 == 0)
+        {
+            old_point.second -= 0.5f;
+        }
+        else
+        {
+            old_point.second += 0.5f;
+        }
+
+        vecModelFlame.push_back(old_point);
+    }
+    vector_score.push_back(0);
 }
 
 // this function is called to update game data,
 // dt - time elapsed since the previous update (in seconds)
 void act(float dt)
 {
+    srand(time(0));
+    vector<Game_object> vector_new_asteroids;
+
     if (is_dead)
     {
         reset();
     }
+
+    asteroids_random_spawn(vector_new_asteroids);
     old_dt += dt;
     collide_dt += dt;
     if (is_key_pressed(VK_ESCAPE)){
@@ -261,12 +286,17 @@ void act(float dt)
     if (is_key_pressed(VK_UP)) {
         player.dx += sin(player.angle) * 100.0f * dt;
         player.dy += -cos(player.angle) * 100.0f * dt;
+        is_acclerate = true;
+    }
+    else
+    {
+        is_acclerate = false;
     }
 
     if (is_key_pressed(VK_SPACE)) {
         if (old_dt > 0.25f && !is_collide_flag)
         {
-            vecBullets.push_back({ player.x,player.y,400.0f * sinf(player.angle),-400.0f * cosf(player.angle),5,0 });
+            vector_bullets.push_back({ player.x,player.y,400.0f * sinf(player.angle),-400.0f * cosf(player.angle),5,0 });
             old_dt = 0;
         }
     }
@@ -274,20 +304,20 @@ void act(float dt)
     player.x += player.dx * dt;
     player.y += player.dy * dt;
 
-    WrapCoordinates(player.x, player.y, player.x, player.y);
+    wrap_coordinates(player.x, player.y, player.x, player.y);
 
-    if (collide_dt > collide_time && is_collide_flag == true)
+    if (collide_dt > COLLIDE_TIME && is_collide_flag == true)
     {
         is_collide_flag = false;
     }
-    for (auto& a : vecAsteroids){
-        if (IsCollide(a.x, a.y, a.size, 0, player.x, player.y) && collide_dt > collide_time)
+    for (auto& a : vector_asteroids){
+        if (is_collide(a.x, a.y, a.size, 2.5f, player.x, player.y) && collide_dt > COLLIDE_TIME)
         {
             
             h_points -= 1;
-            if (vecHearts.size() > 0)
+            if (vector_hearts.size() > 0)
             {
-                vecHearts.pop_back();
+                vector_hearts.pop_back();
             }
             collide_dt = 0;
             is_collide_flag = true;
@@ -298,23 +328,22 @@ void act(float dt)
         }
     }
 
-    for (auto& a : vecAsteroids) {
+    for (auto& a : vector_asteroids) {
         a.x += a.dx * dt;
         a.y += a.dy * dt;
-        WrapCoordinates(a.x, a.y, a.x, a.y);
+        wrap_coordinates(a.x, a.y, a.x, a.y);
     }
 
-    vector<GameObject> vecNewAsteroids;
-    for (auto& b : vecBullets) 
+    for (auto& b : vector_bullets) 
     {
         b.x += b.dx * dt;
         b.y += b.dy * dt;
-        WrapCoordinates(b.x, b.y, b.x, b.y);
+        wrap_coordinates(b.x, b.y, b.x, b.y);
         b.angle -= 1.0f * dt;
 
-        for (auto& a : vecAsteroids)
+        for (auto& a : vector_asteroids)
         {
-            if (IsCollide(a.x, a.y, a.size,b.size, b.x, b.y))
+            if (is_collide(a.x, a.y, a.size,b.size, b.x, b.y))
             {
                 b.x = -10000;
                 if (a.size > 16)
@@ -322,8 +351,8 @@ void act(float dt)
                     float angle1 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
                     float angle2 = ((float)rand() / (float)RAND_MAX) * 6.283185f;
 
-                    vecNewAsteroids.push_back({ a.x, a.y, 50.0f * cosf(angle1),50.0f * sinf(angle1),(int)a.size / 2, 0.0f });
-                    vecNewAsteroids.push_back({ a.x, a.y, 50.0f * cosf(angle2),50.0f * sinf(angle2),(int)a.size / 2, 0.0f });
+                    vector_new_asteroids.push_back({ a.x, a.y, 50.0f * cosf(angle1),50.0f * sinf(angle1),(int)a.size / 2, 0.0f });
+                    vector_new_asteroids.push_back({ a.x, a.y, 50.0f * cosf(angle2),50.0f * sinf(angle2),(int)a.size / 2, 0.0f });
                 }
                 a.x = -10000;
                 score += 1;
@@ -331,13 +360,13 @@ void act(float dt)
         }  
     }
 
-    if (vecBullets.size() > 0)
+    if (vector_bullets.size() > 0)
     {
-        for (auto itr = vecBullets.begin(); itr != vecBullets.end();)
+        for (auto itr = vector_bullets.begin(); itr != vector_bullets.end();)
         {
             if (itr->x < 1 || itr->y < 1 || itr->x > SCREEN_WIDTH || itr->y > SCREEN_HEIGHT) {
-                if (itr != vecBullets.end()) {
-                    itr = vecBullets.erase(itr);
+                if (itr != vector_bullets.end()) {
+                    itr = vector_bullets.erase(itr);
                 }
             }
             else
@@ -347,13 +376,13 @@ void act(float dt)
         } 
     }
 
-    if (vecAsteroids.size() > 0)
+    if (vector_asteroids.size() > 0)
     {
-        for (auto itr = vecAsteroids.begin(); itr != vecAsteroids.end();)
+        for (auto itr = vector_asteroids.begin(); itr != vector_asteroids.end();)
         {
             if (itr->x < -100 || itr->y < -100 || itr->x > SCREEN_WIDTH + 100 || itr->y > SCREEN_HEIGHT + 100) {
-                if (itr != vecAsteroids.end()) {
-                    itr = vecAsteroids.erase(itr);
+                if (itr != vector_asteroids.end()) {
+                    itr = vector_asteroids.erase(itr);
                 }
             }
             else
@@ -378,12 +407,28 @@ void act(float dt)
         sy[i] = sy[i] + player.y;
     }
 
-    WrapCoordinates(player.x, player.y, player.x, player.y);
+    wrap_coordinates(player.x, player.y, player.x, player.y);
     
-    for (auto& a : vecNewAsteroids)
+    for (auto& a : vector_new_asteroids)
     {
-        vecAsteroids.push_back(a);
+        vector_asteroids.push_back(a);
     }
+
+    if (old_score != score)
+    {
+        int temp_score = score;
+        vector_score.clear();
+        int delimetr = 1;
+        while (temp_score != 0)
+        {
+            temp_score = temp_score / delimetr;
+            vector_score.push_back(temp_score % 10);
+            delimetr *= 10;
+
+        }
+        reverse(vector_score.begin(),vector_score.end());
+    }   
+    old_score = score;
 
 }
 
@@ -393,46 +438,52 @@ void draw()
 {
   // clear backbuffer
   memset(buffer, 0, SCREEN_HEIGHT * SCREEN_WIDTH * sizeof(uint32_t));
-  for (auto& a : vecHearts)
+  for (auto& a : vector_hearts)
   {
-      drawModel(vecModelHeart, a.x, a.y, a.angle, a.size, RED);
+      draw_model(vecModelHeart, a.x, a.y, a.angle, a.size, RED);
   }
-  for (auto& a : vecAsteroids) { 
-      drawModel(vecModelAsteroid, a.x, a.y, a.angle, a.size, YELLOW);
+  for (auto& a : vector_asteroids) { 
+      draw_model(vecModelAsteroid, a.x, a.y, a.angle, a.size, YELLOW);
   }
   if (!is_collide_flag)
   {
-      drawModel(vecModelShip, player.x, player.y, player.angle, 5.0f);
+      draw_model(vecModelShip, player.x, player.y, player.angle, 5.0f);
   }
   else
   {
-      drawModel(vecModelShip, player.x, player.y, player.angle, 5.0f,ORANGE);
+      draw_model(vecModelShip, player.x, player.y, player.angle, 5.0f,ORANGE);
   }
 
-  for (auto& a : vecBullets) {
-      drawModel(vecModelBullet, a.x, a.y, a.angle, a.size);
+  if (is_acclerate)
+  {
+      draw_model(vecModelFlame, player.x, player.y, player.angle,5.0f, RED);
+  }
+  for (auto& a : vector_bullets) {
+      draw_model(vecModelBullet, a.x, a.y, a.angle, a.size);
   }
 
-  for (auto& a : vecScore) {
-      drawModel(vecModelDigit9, a.x, a.y, a.angle, a.size);
+  for (int i = 0; i < vector_score.size(); i++)
+  {
+      draw_model(digit_map[vector_score[i]], 150.0f+20*i, 30, 0.0,10.0f);
   }
-
-
-
 }
 
 void reset()
 {
     finalize();
     h_points  = 3;
+    score = 0;
+    old_score = 0;
+    vector_score.push_back(0);
+
     for (int i = 0; i < h_points; i++)
     {
-        vecHearts.push_back({ 20.0f + 40.0f * i, 30.0f, 0.0f, 0.0f, 10, 0.0f });
+        vector_hearts.push_back({ 20.0f + 40.0f * i, 30.0f, 0.0f, 0.0f, 10, 0.0f });
     }
     is_dead = false;
     is_collide_flag = false;
-    vecAsteroids.push_back({ 20.0f, -50.0f, 40.0f,-20.0f,50,0.0f });
-    vecAsteroids.push_back({ -40.0f, -500.0f, -40.0f,20.0f,50,0.0f });
+    //vector_asteroids.push_back({ 20.0f, -50.0f, 40.0f,-20.0f,50,0.0f });
+    //vector_asteroids.push_back({ -40.0f, -500.0f, -40.0f,20.0f,50,0.0f });
     player.x = SCREEN_HEIGHT / 2.0f;
     player.y = SCREEN_WIDTH / 2.0f;
     player.dx = 0.0f;
@@ -444,20 +495,26 @@ void reset()
 // free game data in this function
 void finalize()
 {
-    vecAsteroids.clear();
-    vecBullets.clear();
-    vecHearts.clear();
+    vector_asteroids.clear();
+    vector_bullets.clear();
+    vector_hearts.clear();
+    vector_score.clear();
 }
 
 
-bool IsCollide(float ax, float ay, float a_radius, float b_radius, float bx, float by)
+bool is_collide(float ax, float ay, float a_radius, float b_radius, float bx, float by)
 {
     return sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) <= b_radius + a_radius;
 
 };
 
+float get_distance(float ax, float ay, float bx, float by)
+{
+    return sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+}
 
-void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
+
+void draw_line(int x1, int y1, int x2, int y2, uint32_t color)
 {
     int x, y, dx, dy, dx1, dy1, px, py, xe, ye, i;
     dx = x2 - x1;
@@ -480,7 +537,7 @@ void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
             y = y2;
             xe = x1;
         }
-        drawPoint2(x, y, color);
+        draw_point2(x, y, color);
         for (i = 0; x < xe; i++)
         {
             x = x + 1;
@@ -494,7 +551,7 @@ void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
                     y = y - 1;
                 px = px + 2 * (dy1 - dx1);
             }
-            drawPoint2(x, y, color);
+            draw_point2(x, y, color);
         }
     }
     else
@@ -511,7 +568,7 @@ void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
             y = y2;
             ye = y1;
         }
-        drawPoint2(x, y, color);
+        draw_point2(x, y, color);
         for (i = 0; y < ye; i++)
         {
             y = y + 1;
@@ -525,13 +582,13 @@ void drawLine(int x1, int y1, int x2, int y2, uint32_t color)
                     x = x - 1;
                 py = py + 2 * (dx1 - dy1);
             }
-            drawPoint2(x, y, color);
+            draw_point2(x, y, color);
         }
     }
 
 };
 
-void drawModel(const vector<pair<float, float>>& vecModelCoordinates, float x, float y,
+void draw_model(const vector<pair<float, float>>& vecModelCoordinates, float x, float y,
     float r, float s, uint32_t color)
 {
     // pair.first = x coordinate
@@ -567,12 +624,12 @@ void drawModel(const vector<pair<float, float>>& vecModelCoordinates, float x, f
     for (int i = 0; i < verts + 1; i++)
     {
         int j = (i + 1);
-        drawLine(vecTransformedCoordinates[i % verts].first, vecTransformedCoordinates[i % verts].second,
+        draw_line(vecTransformedCoordinates[i % verts].first, vecTransformedCoordinates[i % verts].second,
             vecTransformedCoordinates[j % verts].first, vecTransformedCoordinates[j % verts].second, color);
     }
 };
 
-void WrapCoordinates(float ix, float iy, float& ox, float& oy)
+void wrap_coordinates(float ix, float iy, float& ox, float& oy)
 {
     ox = ix;
     oy = iy;
@@ -582,7 +639,7 @@ void WrapCoordinates(float ix, float iy, float& ox, float& oy)
     if (iy >= SCREEN_HEIGHT) oy = iy - SCREEN_HEIGHT;
 };
 
-void drawPoint(int x, int y, uint32_t color)
+void draw_point(int x, int y, uint32_t color)
 {
     if (x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT)
     {
@@ -591,10 +648,38 @@ void drawPoint(int x, int y, uint32_t color)
 
 };
 
-void drawPoint2(int x, int y, uint32_t color)
+void draw_point2(int x, int y, uint32_t color)
 {
     float fx, fy;
-    WrapCoordinates(x, y, fx, fy);
-    drawPoint(fx, fy, color);
+    wrap_coordinates(x, y, fx, fy);
+    draw_point(fx, fy, color);
 
 };
+
+void asteroids_random_spawn(vector<Game_object>& vectorNew)
+{
+    if (vector_asteroids.size() < 4)
+    {
+        for (int i = 0; i < 6 - vector_asteroids.size(); i++)
+        {
+            float x = (float)(-800 + rand() % 1200);
+            float y = (float)(-800 + rand() % 1200);
+            float dx = (float)(-60 + rand() % 120);
+            float dy = (float)(-60 + rand() % 120);
+            int size = (float)(20 + rand() % 40);
+           
+            while ((get_distance(x, y, player.x, player.y) - size)< 400)
+            {
+                x = (float)(-800 + rand() % 1200);
+                y = (float)(-800 + rand() % 1200);
+                dx = (float)(-60 + rand() % 120);
+                dy = (float)(-60 + rand() % 120);
+                size = (float)(16 + rand() % 40);
+            }
+            vectorNew.push_back({ x,y,dx,dy,size});
+
+            
+
+        }
+    }
+}
